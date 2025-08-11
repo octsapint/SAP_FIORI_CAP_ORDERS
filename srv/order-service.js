@@ -1,150 +1,118 @@
 const cds = require('@sap/cds');
 const axios = require('axios');
+const { SELECT, UPDATE, INSERT } = cds;
 
-module.exports = cds.service.impl(async function () {
+module.exports = cds.service.impl(function () {
   const { SupplierOrdersReprocess, AuditLog } = this.entities;
 
-  // RESEND ACTION
+  async function writeAudit(tx, action, ID, user) {
+    if (!AuditLog) return;
+    try {
+      await tx.run(INSERT.into(AuditLog).entries({
+        action,
+        referenceID: ID,
+        timestamp: new Date(),
+        user
+      }));
+    } catch (err) {
+      // ignore audit failures
+    }
+  }
+
   this.on('Resend', async (req) => {
-    const { orderIDs } = req.data;
-
+    const { orderIDs = [] } = req.data;
+    const tx = cds.transaction(req);
     let successCount = 0;
     let failureCount = 0;
-    const processedIDs = [];
-    const failedIDs = [];
 
     for (const ID of orderIDs) {
       try {
-        const record = await SELECT.one.from(SupplierOrdersReprocess).where({ ID });
+        const record = await tx.run(SELECT.one.from(SupplierOrdersReprocess).where({ ID }));
+        if (!record || record.status !== 1) throw new Error('Not found or invalid status');
 
-        if (!record || record.status !== 1) {
-          failedIDs.push({ ID, reason: 'Order not found or not eligible for resend.' });
-          failureCount++;
-          continue;
+        let payload;
+        try {
+          payload = JSON.parse(record.rawData || '{}');
+        } catch (err) {
+          throw new Error('Invalid JSON');
         }
 
-        await axios.post(process.env.CPI_REPROCESS_ENDPOINT, JSON.parse(record.rawData));
+        await axios.post(process.env.CPI_REPROCESS_ENDPOINT, payload);
 
-        await UPDATE(SupplierOrdersReprocess)
-          .set({
-            status: 2,
-            lastRetryDate: new Date(),
-            reprocessCounter: { '+=': 1 }
-          })
-          .where({ ID });
+        await tx.run(
+          UPDATE(SupplierOrdersReprocess)
+            .set({
+              status: 2,
+              lastRetryDate: new Date(),
+              reprocessCounter: (record.reprocessCounter || 0) + 1
+            })
+            .where({ ID })
+        );
 
-        await INSERT.into(AuditLog).entries({
-          action: 'Resend',
-          referenceID: ID,
-          timestamp: new Date(),
-          user: req.user.id
-        });
-
+        await writeAudit(tx, 'Resend', ID, req.user?.id);
         successCount++;
-        processedIDs.push(ID);
       } catch (err) {
-        console.error(`Resend failed for ID ${ID}: ${err.message}`);
-        failedIDs.push({ ID, reason: err.message });
+        console.error(`Resend failed for ${ID}: ${err.message}`);
         failureCount++;
       }
     }
 
     return {
-      message: `✅ ${successCount} reprocessed, ❌ ${failureCount} failed.`,
+      message: `\u2705 ${successCount} reprocessed, \u274c ${failureCount} failed.`,
       successCount,
-      failureCount,
-      processedIDs,
-      failedIDs
+      failureCount
     };
   });
 
-  // CANCEL ACTION
   this.on('Cancel', async (req) => {
-    const { orderIDs } = req.data;
-
+    const { orderIDs = [] } = req.data;
+    const tx = cds.transaction(req);
     let successCount = 0;
     let failureCount = 0;
-    const processedIDs = [];
-    const failedIDs = [];
 
     for (const ID of orderIDs) {
       try {
-        const updated = await UPDATE(SupplierOrdersReprocess)
-          .set({ status: 3 }) // 3 = Cancelled
-          .where({ ID });
+        const updated = await tx.run(UPDATE(SupplierOrdersReprocess).set({ status: 3 }).where({ ID }));
+        if (updated === 0) throw new Error('Not found');
 
-        if (updated === 0) {
-          failedIDs.push({ ID, reason: 'Order not found.' });
-          failureCount++;
-        } else {
-          await INSERT.into(AuditLog).entries({
-            action: 'Cancel',
-            referenceID: ID,
-            timestamp: new Date(),
-            user: req.user.id
-          });
-
-          successCount++;
-          processedIDs.push(ID);
-        }
+        await writeAudit(tx, 'Cancel', ID, req.user?.id);
+        successCount++;
       } catch (err) {
-        console.error(`Cancel failed for ID ${ID}: ${err.message}`);
-        failedIDs.push({ ID, reason: err.message });
+        console.error(`Cancel failed for ${ID}: ${err.message}`);
         failureCount++;
       }
     }
 
     return {
-      message: `✅ ${successCount} cancelled, ❌ ${failureCount} failed.`,
+      message: `\u2705 ${successCount} cancelled, \u274c ${failureCount} failed.`,
       successCount,
-      failureCount,
-      processedIDs,
-      failedIDs
+      failureCount
     };
   });
 
-  // ARCHIVE ACTION
   this.on('Archive', async (req) => {
-    const { orderIDs } = req.data;
-
+    const { orderIDs = [] } = req.data;
+    const tx = cds.transaction(req);
     let successCount = 0;
     let failureCount = 0;
-    const processedIDs = [];
-    const failedIDs = [];
 
     for (const ID of orderIDs) {
       try {
-        const updated = await UPDATE(SupplierOrdersReprocess)
-          .set({ status: 4 }) // 4 = Archived
-          .where({ ID });
+        const updated = await tx.run(UPDATE(SupplierOrdersReprocess).set({ status: 4 }).where({ ID }));
+        if (updated === 0) throw new Error('Not found');
 
-        if (updated === 0) {
-          failedIDs.push({ ID, reason: 'Order not found.' });
-          failureCount++;
-        } else {
-          await INSERT.into(AuditLog).entries({
-            action: 'Archive',
-            referenceID: ID,
-            timestamp: new Date(),
-            user: req.user.id
-          });
-
-          successCount++;
-          processedIDs.push(ID);
-        }
+        await writeAudit(tx, 'Archive', ID, req.user?.id);
+        successCount++;
       } catch (err) {
-        console.error(`Archive failed for ID ${ID}: ${err.message}`);
-        failedIDs.push({ ID, reason: err.message });
+        console.error(`Archive failed for ${ID}: ${err.message}`);
         failureCount++;
       }
     }
 
     return {
-      message: `✅ ${successCount} archived, ❌ ${failureCount} failed.`,
+      message: `\u2705 ${successCount} archived, \u274c ${failureCount} failed.`,
       successCount,
-      failureCount,
-      processedIDs,
-      failedIDs
+      failureCount
     };
   });
 });

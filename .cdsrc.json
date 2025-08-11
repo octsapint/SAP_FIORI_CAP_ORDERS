@@ -4,11 +4,23 @@
     "tasks": [
       {
         "for": "postgres",
-        "src": "db"
+        "src": "db",
+        "options": {
+          "model": [
+            "db",
+            "!@sap/cds/srv/outbox"
+          ]
+        }
       },
       {
         "for": "node-cf",
-        "src": "srv"
+        "src": "srv",
+        "options": {
+          "model": [
+            "srv",
+            "@sap/cds/srv/outbox"
+          ]
+        }
       }
     ]
   },
