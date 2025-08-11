@@ -13,8 +13,8 @@
     "@cap-js/postgres": "^2",
     "@sap/cds": "^9",
     "@sap/xssec": "^4",
-    "express": "^5",
-    "axios": "^1.7.2"
+    "axios": "^1.11.0",
+    "express": "^4.21.2"
   },
   "engines": {
     "node": ">=20"
@@ -27,7 +27,7 @@
   },
   "scripts": {
     "start": "cds run",
-    "test": "npx cds compile"
+    "test": "npx cds compile srv/"
   },
   "sapux": [
     "app/admin-books",

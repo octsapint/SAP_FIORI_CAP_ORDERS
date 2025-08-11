@@ -15,4 +15,4 @@ jobs:
         with:
           node-version: 20
       - run: npm ci || npm i
-      - run: npx cds compile
+      - run: npx cds compile srv/
