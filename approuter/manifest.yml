@@ -1,0 +1,22 @@
+---
+applications:
+  - name: orders-approuter
+    path: .
+    buildpacks:
+      - nodejs_buildpack
+    memory: 128M
+    env:
+      TENANT_HOST_PATTERN: "^(.*)-orders-approuter.cfapps.us10-001.hana.ondemand.com"
+      destinations: >
+        [
+          {
+            "name": "orders-srv",
+            "url": "https://e56df01ctrial-dev-orders-srv.cfapps.us10-001.hana.ondemand.com",
+            "forwardAuthToken": true
+          }
+        ]
+      SAP_JWT_TRUST_ACL: '[{"clientid":"*","identityzone":"*"}]'
+    services:
+      - orders-auth
+      - orders-destination
+      - orders-connectivity

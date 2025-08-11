@@ -1,0 +1,99 @@
+{
+  "_version": "1.60.0",
+  "sap.app": {
+    "id": "com.octanner.SupplierOrdersUI.supplierorders",
+    "type": "application",
+    "i18n": "i18n/i18n.properties",
+    "applicationVersion": {
+      "version": "0.0.1"
+    },
+    "title": "{{appTitle}}",
+    "description": "{{appDescription}}",
+    "resources": "resources.json",
+    "sourceTemplate": {
+      "id": "",
+      "version": ""
+    },
+    "dataSources": {
+      "mainService": {
+        "uri": "/odata/v4/supplier-order/",
+        "type": "OData",
+        "settings": {
+          "odataVersion": "4.0"
+        }
+      }
+    }
+  },
+  "sap.ui": {
+    "technology": "UI5",
+    "deviceTypes": {
+      "desktop": true,
+      "tablet": true,
+      "phone": true
+    }
+  },
+  "sap.ui5": {
+    "flexEnabled": true,
+    "dependencies": {
+      "minUI5Version": "1.136.2",
+      "libs": {
+        "sap.m": {},
+        "sap.ui.core": {}
+      }
+    },
+    "models": {
+      "i18n": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "settings": {
+          "bundleName": "com.octanner.SupplierOrdersUI.supplierorders.i18n.i18n"
+        }
+      },
+      "": {
+        "dataSource": "mainService",
+        "settings": {
+          "synchronizationMode": "None",
+          "operationMode": "Server",
+          "autoExpandSelect": true,
+          "annotationURI": [
+            "annotations/annotation.xml"
+          ]
+        },
+        "type": "sap.ui.model.odata.v4.ODataModel"
+      }
+    },
+    "resources": {
+      "css": []
+    },
+    "routing": {
+      "config": {
+        "routerClass": "sap.f.routing.Router",
+        "viewType": "XML",
+        "controlId": "app",
+        "controlAggregation": "pages",
+        "viewPath": "com.octanner.SupplierOrdersUI.supplierorders",
+        "async": true
+      },
+      "routes": [
+        {
+          "pattern": ":?query:",
+          "name": "ListReport",
+          "target": "ListReport"
+        }
+      ],
+      "targets": {
+        "ListReport": {
+          "type": "Component",
+          "id": "ListReport",
+          "name": "sap.fe.templates.ListReport",
+          "options": {
+            "settings": {
+              "entitySet": "SupplierOrdersReprocess",
+              "variantManagement": true,
+              "navigation": {}
+            }
+          }
+        }
+      }
+    }
+  }
+}

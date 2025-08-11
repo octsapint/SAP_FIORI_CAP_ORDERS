@@ -1,0 +1,30 @@
+{
+  "name": "supplierorders",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Fiori elements app for Supplier Orders",
+  "scripts": {
+    "start": "ui5 serve --config=ui5.yaml --open index.html",
+    "start-local": "ui5 serve --config=ui5-local.yaml --open index.html",
+    "build": "ui5 build --config=ui5.yaml --clean-dest --dest dist",
+    "lint": "eslint ./",
+    "ts-typecheck": "tsc --noEmit",
+    "prestart": "npm run ts-typecheck",
+    "prebuild": "npm run ts-typecheck"
+  },
+  "devDependencies": {
+    "@sap/ux-specification": "^1.108.1",
+    "@sap/ux-ui5-tooling": "^1.18.2",
+    "@sapui5/ts-types-esm": "^1.136.2",
+    "@sapui5/types": "1.136.2",
+    "@typescript-eslint/eslint-plugin": "^7.1.1",
+    "@typescript-eslint/parser": "^7.1.1",
+    "@ui5/cli": "^3.0.0",
+    "eslint": "^8.56.0",
+    "typescript": "^5.1.6",
+    "ui5-tooling-transpile": "^3.3.7"
+  },
+  "sapux": [
+    "supplierorders"
+  ]
+}

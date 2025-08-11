@@ -1,0 +1,100 @@
+_schema-version: 3.3.0
+ID: orders
+version: 1.0.0
+description: "A simple CAP project."
+parameters:
+  enable-parallel-deployments: true
+  deploy_mode: html5-repo
+
+modules:
+  # CAP Service
+  - name: orders-srv
+    type: nodejs
+    path: . # ✅ Changed from gen/srv → use project root so CF sees main package.json
+    parameters:
+      instances: 1
+      buildpack: nodejs_buildpack
+    build-parameters:
+      builder: npm-ci # Uses package-lock.json for reliable installs
+    provides:
+      - name: srv-api # 👈 AppRouter connects to this
+        properties:
+          srv-url: ${default-url}
+    requires:
+      - name: orders-auth
+      - name: postgresql
+      - name: orders-connectivity
+      - name: orders-destination
+      - name: orders-logging
+      - name: orders-auditlog
+
+  # Postgres Deployer
+  - name: orders-postgres-deployer
+    type: nodejs
+    path: gen/pg
+    parameters:
+      buildpack: nodejs_buildpack
+      no-route: true
+      no-start: true
+      tasks:
+        - name: deploy-to-postgresql
+          command: npm start
+    requires:
+      - name: postgresql
+
+  # AppRouter
+  - name: orders-approuter
+    type: approuter.nodejs
+    path: approuter # ✅ Make sure /home/user/projects/orders/approuter exists
+    parameters:
+      disk-quota: 256M
+      memory: 256M
+    requires:
+      - name: orders-auth
+      - name: srv-api
+    build-parameters:
+      builder: npm
+
+resources:
+  - name: orders-auth
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: xsuaa
+      service-plan: application
+      path: ./xs-security.json
+      config:
+        xsappname: orders-app-xsuaa
+        tenant-mode: dedicated
+        oauth2-configuration:
+          redirect-uris:
+            - https://*.cfapps.*.hana.ondemand.com/**
+
+  - name: postgresql
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: postgresql-db
+      service-plan: trial
+
+  - name: orders-connectivity
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: connectivity
+      service-plan: lite
+
+  - name: orders-destination
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: destination
+      service-plan: lite
+
+  - name: orders-logging
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: application-logs
+      service-plan: lite
+
+  - name: orders-auditlog
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: auditlog-management
+      service-plan: default

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="4.0" xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx">
+  <edmx:DataServices>
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="supplierorder">
+
+      <!-- Entity Type -->
+      <EntityType Name="SupplierOrders">
+        <Key>
+          <PropertyRef Name="ID" />
+        </Key>
+        <Property Name="ID" Type="Edm.String" Nullable="false" />
+        <Property Name="OrderNumber" Type="Edm.String" />
+        <Property Name="SupplierName" Type="Edm.String" />
+        <Property Name="OrderDate" Type="Edm.DateTimeOffset" />
+        <Property Name="Status" Type="Edm.String" />
+      </EntityType>
+
+      <!-- Entity Container -->
+      <EntityContainer Name="EntityContainer">
+        <EntitySet Name="SupplierOrders" EntityType="supplierorder.SupplierOrders" />
+      </EntityContainer>
+
+    </Schema>
+  </edmx:DataServices>
+</edmx:Edmx>

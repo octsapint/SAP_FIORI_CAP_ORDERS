@@ -1,0 +1,23 @@
+{
+    "welcomeFile": "/index.html",
+    "authenticationMethod": "route",
+    "routes": [
+        {
+            "source": "^/odata/v4/supplier-order/(.*)$",
+            "target": "/odata/v4/supplier-order/$1",
+            "destination": "orders-srv",
+            "authenticationType": "xsuaa"
+        },
+        {
+            "source": "/user-api/currentUser$",
+            "target": "/currentUser",
+            "service": "sap-approuter-userapi"
+        },
+        {
+            "source": "^(.*)$",
+            "target": "$1",
+            "service": "html5-apps-repo-rt",
+            "authenticationType": "xsuaa"
+        }
+    ]
+}

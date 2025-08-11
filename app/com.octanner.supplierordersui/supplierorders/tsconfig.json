@@ -1,0 +1,27 @@
+{
+    "compilerOptions": {
+      "target": "ES2022",
+      "module": "ES2022",
+      "moduleResolution": "node",
+      "rootDir": "./webapp",
+      "outDir": "./dist",
+      "baseUrl": "./",
+      "paths": {
+        "supplierorders/*": ["./webapp/*"],
+        "sap/*": ["./types/sap/*"]
+      },
+      "typeRoots": [
+        "./node_modules/@types",
+        "./node_modules/@sapui5/ts-types-esm/types"
+      ],
+      "skipLibCheck": true,
+      "allowJs": true,
+      "strict": true,
+      "strictPropertyInitialization": false
+    },
+    "include": [
+      "webapp/**/*",
+      "types/**/*"
+    ]
+  }
+  

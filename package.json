@@ -1,0 +1,76 @@
+{
+  "name": "orders",
+  "version": "1.0.0",
+  "description": "A simple CAP project.",
+  "_repository": "<Add your repository here>",
+  "license": "UNLICENSED",
+  "private": true,
+  "workspaces": [
+    "app/com.octanner.SupplierOrdersUI/supplierorders"
+  ],
+  "dependencies": {
+    "@cap-js/audit-logging": ">=1",
+    "@cap-js/postgres": "^2",
+    "@sap/cds": "^9",
+    "@sap/xssec": "^4",
+    "express": "^5"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "@cap-js/cds-types": "^0.13.0",
+    "@sap/cds-dk": ">=9",
+    "generator-easy-ui5": "^3.8.2",
+    "yeoman-environment": "^4.4.3"
+  },
+  "scripts": {
+    "start": "cds run"
+  },
+  "sapux": [
+    "app/admin-books",
+    "app/browse"
+  ],
+  "cds": {
+    "requires": {
+      "db": {
+        "kind": "postgres",
+        "vcap": {
+          "label": "postgresql"
+        }
+      },
+      "connectivity": true,
+      "destinations": true,
+      "html5-runtime": true,
+      "application-logging": true
+    },
+    "[production]": {
+      "auth": "xsuaa"
+    },
+    "build": {
+      "target": "gen",
+      "tasks": [
+        {
+          "for": "postgres",
+          "src": "db",
+          "options": {
+            "model": [
+              "db",
+              "!@sap/cds/srv/outbox"
+            ]
+          }
+        },
+        {
+          "for": "node-cf",
+          "src": "srv",
+          "options": {
+            "model": [
+              "srv",
+              "@sap/cds/srv/outbox"
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

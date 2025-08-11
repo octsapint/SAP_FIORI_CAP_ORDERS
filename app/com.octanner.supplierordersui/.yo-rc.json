@@ -1,0 +1,15 @@
+{
+  "generator-ui5-project": {
+    "namespaceUI5": "com.octanner",
+    "projectName": "SupplierOrdersUI",
+    "uimoduleName": "supplierorders",
+    "enableFPM": true,
+    "enableTypescript": true,
+    "enableFioriTools": true,
+    "platform": "SAP HTML5 Application Repository Service",
+    "ui5Libs": "Local resources (SAPUI5)",
+    "newDir": true,
+    "initRepo": true,
+    "projectId": "com.octanner.SupplierOrdersUI"
+  }
+}

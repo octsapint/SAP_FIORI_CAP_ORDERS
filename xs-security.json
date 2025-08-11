@@ -1,0 +1,22 @@
+{
+  "xsappname": "orders-app-xsuaa",
+  "tenant-mode": "dedicated",
+  "authorities-inheritance": true,
+  "scopes": [
+    { "name": "uaa.user", "description": "Basic UAA scope" },
+    { "name": "$XSAPPNAME.View",  "description": "Read entities" },
+    { "name": "$XSAPPNAME.Admin", "description": "Admin access" }
+  ],
+  "role-templates": [
+    {
+      "name": "Viewer",
+      "description": "Read-only",
+      "scope-references": [ "uaa.user", "$XSAPPNAME.View" ]
+    },
+    {
+      "name": "Administrator",
+      "description": "All access",
+      "scope-references": [ "uaa.user", "$XSAPPNAME.Admin", "$XSAPPNAME.View" ]
+    }
+  ]
+}
