@@ -1,0 +1,64 @@
+Title:
+🔄 Migration of SAP PI BPM Reprocessing Logic to SAP BTP CAPM with PostgreSQL Backend for Supplier Order Failures
+________________________________________
+🧩 Business Context:
+We are modernizing our SAP PI-based failed order reprocessing logic and migrating it to SAP BTP using CAPM (Cloud Application Programming Model) and PostgreSQL DB. The existing BPM logic manages failed order transactions that need to be reviewed and reprocessed by business users. These include handling retries, tracking error reasons, and archiving.
+________________________________________
+📌 Current State:
+•	Orders fail in SAP CPI due to business/validation issues.
+•	SAP PI BPM stores these failed transactions in Oracle DB with raw XML data and retry counters.
+•	Manual reprocessing via UI invokes the BPM process.
+•	Oracle triggers are used to manage auto-increment and retry timestamps.
+________________________________________
+🎯 Target State (SAP BTP):
+•	SAP CPI will call a CAPM API to log failed orders in PostgreSQL.
+•	A Fiori/UI5 app will allow business users to:
+o	Reprocess (resend) selected orders
+o	Cancel unwanted ones
+o	Download records for analysis
+o	Filter by supplier ID and error text
+o	View audit logs
+•	PostgreSQL replaces Oracle with modern schema, constraints, and indexing.
+•	Archival and session management features are needed.
+________________________________________
+📑 Database Requirements:
+Migrate the Oracle table SUPPLIER_ORDERS_REPROCESS to PostgreSQL. Table must:
+•	Use SERIAL or GENERATED IDs
+•	Store raw order payload as JSONB
+•	Track status codes (1=Failed, 2=Reprocessed, 3=Cancelled, 4=Archived)
+•	Support audit logging and timestamps
+________________________________________
+🚀 Functional Requirements:
+1.	Insert failed orders via CPI into PostgreSQL using CAPM API
+2.	Update status and retry count on reprocess
+3.	Allow filtering, download, and batch selection on UI
+4.	Log each user action in AuditLog table
+5.	Provide backend service to call CPI endpoint with rawData for reprocessing
+________________________________________
+🔐 Non-Functional Requirements:
+•	Secure the CAPM service using XSUAA roles
+•	Implement transactional consistency
+•	Enable auditing, session expiration, and retry limits
+•	Ensure extensibility for more order types or suppliers in future
+•	Scalable to 10,000+ records/month
+________________________________________
+🔧 Technical Stack:
+•	SAP BTP (Cloud Foundry)
+•	CAPM (Node.js or Java)
+•	PostgreSQL HDI or hyperscaler service
+•	SAP CPI IFlow endpoint (HTTPS)
+•	SAP Fiori Elements / UI5 frontend
+________________________________________
+🛠️ Solution Summary:
+Component	Description
+PostgreSQL Table	Enhanced schema with JSONB for rawData, indexed fields for performance
+CAPM Service	CRUD + actions (resend, cancel, archive), CPI API integration
+UI5 App	Reprocess dashboard with filters, batch actions, session & retry tracking
+Audit Logging	Separate table logging all user/system actions
+CPI Flow	Accept reprocess payload, revalidate, and send back success/failure
+Security	Role-based access control via XSUAA, optional JWT propagation
+Archiving	Optional job to mark & purge records > X days old
+
+
+user: orders $ mkdir -p app/com.octanner.supplierordersui/supplierorders/webapp/localService
+curl https://port4004-workspaces-ws-vx5h4.us10.trial.applicationstudio.cloud.sap/odata/v4/supplier-order/$metadata -o app/com.octanner.supplierordersui/supplierorders/webapp/localService/metadata.xml
